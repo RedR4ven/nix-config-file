@@ -1,4 +1,3 @@
-  GNU nano 9.2                                                                                                                                                                                configuration.nix                                                                                                                                                                                 Modified
 # Edit this configuration file to define what should be installed on
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
@@ -14,9 +13,6 @@
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-
-  # Use latest kernel.
-  boot.kernelPackages = pkgs.linuxPackages_6_18;
 
   networking.hostName = "Albatross"; # Define your hostname.
   networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -55,59 +51,55 @@
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users."chr0n" = {
     isNormalUser = true;
-    description = "Chr0n";
+    description = "chr0n";
     extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [];
   };
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
+  
+  boot.kernelParams = [
+	"nvidia_drm.fbdev=1"
+	"nvidia_drm.modeset=1"
+];  
 
   services.xserver.videoDrivers = ["nvidia"];
+
   hardware.graphics.enable = true;
+  
   hardware.nvidia = {
-        modesetting.enable = true;
-        powerManagement.enable = true;
-        open = false;
-        nvidiaSettings = true;
-        package = config.boot.kernelPackages.nvidiaPackages.stable;
-  };
+	modesetting.enable = true;
+	powerManagement.enable = true;
+	open = true;
+	nvidiaSettings = true;
+ };
 
-  # Enable Cosmic Greeter
   services.displayManager.cosmic-greeter.enable = true;
-
-  # Enable the Cosmic Dekstop Environment
   services.desktopManager.cosmic.enable = true;
+  services.desktopManager.cosmic.xwayland.enable = true;
 
-  # Optional: Enable Xwayland support
-    services.desktopManager.cosmic.xwayland.enable = true;
+  boot.extraModprobeConfig = "
+	options nvidia-drm modeset=1 fbdev=1";
 
-  # Optional: Flatpak support (needed for the cosmic store)
-  # services.flatpak.enable = true;
-
-  # Optional: Exclude specific COSMIC packages (avialable in 25.11)
-  # environment.cosmic.excludePackages = with pkgs; [
-  #     cosmic-edit
-  #     cosmic-player
-  # ];
-
-
+  boot.blacklistedKernelModules = ["nouveau" "simpledrm"];
+  
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
   environment.systemPackages = with pkgs; [
-        neovim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-        wget
-        firefox
-        git
-        google-chrome
+  	neovim
+  	wget
+	git
+	firefox
+	fastfetch
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   programs.mtr.enable = true;
   programs.gnupg.agent = {
-        enable = true;
-        enableSSHSupport = true;
+  	enable = true;
+  	enableSSHSupport = true;
   };
 
   # List services that you want to enable:
