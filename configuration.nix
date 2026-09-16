@@ -1,3 +1,4 @@
+  GNU nano 9.2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 /etc/nixos/configuration.nix
 # Edit this configuration file to define what should be installed on
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
@@ -23,6 +24,7 @@
 
   # Enable networking
   networking.networkmanager.enable = true;
+  services.blueman.enable = true;
 
   # Set your time zone.
   time.timeZone = "America/Chicago";
@@ -57,22 +59,26 @@
   };
 
   # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
-  
+  nixpkgs.config = {
+    allowUnfree = true;
+    android_sdk.accept_license = true; # to accept the adroid SDK licensing
+  };
+
+  # Graphics stuff
   boot.kernelParams = [
-	"nvidia_drm.fbdev=1"
-	"nvidia_drm.modeset=1"
-];  
+        "nvidia_drm.fbdev=1"
+        "nvidia_drm.modeset=1"
+];
 
   services.xserver.videoDrivers = ["nvidia"];
 
   hardware.graphics.enable = true;
-  
+
   hardware.nvidia = {
-	modesetting.enable = true;
-	powerManagement.enable = true;
-	open = true;
-	nvidiaSettings = true;
+        modesetting.enable = true;
+        powerManagement.enable = true;
+        open = true;
+        nvidiaSettings = true;
  };
 
   services.displayManager.cosmic-greeter.enable = true;
@@ -80,32 +86,114 @@
   services.desktopManager.cosmic.xwayland.enable = true;
 
   boot.extraModprobeConfig = "
-	options nvidia-drm modeset=1 fbdev=1";
+        options nvidia-drm modeset=1 fbdev=1";
 
   boot.blacklistedKernelModules = ["nouveau" "simpledrm"];
-  
+
+  # Enable sound with pipewire.
+  services.pulseaudio.enable = false;
+  security.rtkit.enable = true;
+  services.pipewire = {
+        enable = true;
+        alsa.enable = true;
+        alsa.support32Bit = true;
+        pulse.enable = true;
+        # If you want to use JACK applications, uncomment this
+        #jack.enable = true;
+
+
+        # use the example session manager (no others are packaged yet so this is enabled by default,
+        # no need to redefine it in your config for now)
+        #media-session.enable = true;
+  };
+
+   # Docker
+  virtualisation.docker.enable = true;
+
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
   environment.systemPackages = with pkgs; [
-  	neovim
-  	wget
-	git
-	firefox
-	fastfetch
+        neovim
+        wget
+        git
+        firefox
+        fastfetch
+        ripgrep
+        discord
+        bluez
+        ispell
+        waydroid
+        proton-vpn
+        tor
+        wireshark
+        wireshark-cli
+        netcat-gnu
+        pipewire
+        _1password-gui
+        docker
+
+        # Languages
+        python314
+        go
+        rustup
+        gcc
+        glibc
+        libcxx
+        gdb
+        cmake
+        gnumake
+        libgcc
+        gopls
+        rust-analyzer
+        ccls
+        nodejs
+        jdk
+        # Reverse Engineering Tools
+        ghidra
+        ghidra-extensions.ghidra-golanganalyzerextension
+        ghidra-extensions.ghidra-firmware-utils
+        ghidra-extensions.ghidra-delinker-extension
+        ghidra-extensions.findcrypt
+        ghidra-extensions.wasm
+        ghidra-extensions.machinelearning
+        ghidra-extensions.gnudisassembler
+        ghidra-extensions.sleighdevtools
+        radare2
+        cutter
+        gef
+        frida-tools
+        binwalk
+        imhex
+        detect-it-easy
+        lief
+        strace
+        ltrace
+        rr
+        ida-free # download the file from Hexrays under your account the run nix-prefetch-url --type sha256 file:///home/chr0n/Downloads/ida-free-pc_93_x64linux.run
+        # Android Reverse Engineering tools
+        jadx
+        apktool
+        androguard
+        apkleaks
+        objection
+        mitmproxy
+        burpsuite
+        # Cisco Training Tools
+        cisco-packet-tracer_9  # need to run sudo nix-channel --update, then run nix-prefetch-url --type sha256 file:///home/chr0n/Downloads/CiscoPacketTracer_901_Ubuntu_64bit.deb, if this fails run nix-store --add-fixed sha256 CiscoPacketTracer_901_Ubuntu_64bit.deb
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   programs.mtr.enable = true;
   programs.gnupg.agent = {
-  	enable = true;
-  	enableSSHSupport = true;
+        enable = true;
+        enableSSHSupport = true;
   };
 
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
+  #services.openssh.enable = true;
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
